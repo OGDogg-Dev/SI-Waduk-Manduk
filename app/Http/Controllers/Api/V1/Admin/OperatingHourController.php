@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\OperatingHourRequest;
 use App\Http\Resources\OperatingHourResource;
 use App\Models\OperatingHour;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Controller admin untuk OperatingHour.
@@ -47,7 +47,7 @@ class OperatingHourController extends Controller
     {
         $operatingHour = OperatingHour::create($request->validated());
 
-        Cache::tags(['attractions'])->flush();
+        CacheTagger::flush(['attractions']);
 
         return (new OperatingHourResource($operatingHour))->response()->setStatusCode(201);
     }
@@ -67,7 +67,7 @@ class OperatingHourController extends Controller
     {
         $operatingHour->update($request->validated());
 
-        Cache::tags(['attractions'])->flush();
+        CacheTagger::flush(['attractions']);
 
         return new OperatingHourResource($operatingHour->refresh());
     }
@@ -79,7 +79,7 @@ class OperatingHourController extends Controller
     {
         $operatingHour->delete();
 
-        Cache::tags(['attractions'])->flush();
+        CacheTagger::flush(['attractions']);
 
         return response()->noContent();
     }

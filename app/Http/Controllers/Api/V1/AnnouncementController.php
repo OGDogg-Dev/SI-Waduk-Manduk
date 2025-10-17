@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Resources\AnnouncementResource;
 use App\Models\Announcement;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Date;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Date;
 
 /**
  * Controller untuk pengumuman publik.
@@ -24,7 +24,7 @@ class AnnouncementController
         $isAdminView = $user && $user->can('announcements.viewAny');
         $cacheKey = 'announcements:'.($isAdminView ? 'admin:' : 'public:').md5($request->fullUrl());
 
-        $paginator = Cache::tags(['announcements'])->remember($cacheKey, now()->addMinutes(5), function () use ($perPage, $isAdminView) {
+        $paginator = CacheTagger::remember($cacheKey, ['announcements'], now()->addMinutes(5), function () use ($perPage, $isAdminView) {
             $query = Announcement::query()->with('media');
 
             if (! $isAdminView) {

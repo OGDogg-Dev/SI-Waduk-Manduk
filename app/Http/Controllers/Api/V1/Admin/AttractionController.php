@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\AttractionRequest;
 use App\Http\Resources\AttractionResource;
 use App\Models\Attraction;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Controller admin untuk mengelola Attraction.
@@ -53,7 +53,7 @@ class AttractionController extends Controller
     {
         $attraction = Attraction::create($request->validated());
 
-        Cache::tags(['attractions'])->flush();
+        CacheTagger::flush(['attractions']);
 
         return (new AttractionResource($attraction))->response()->setStatusCode(201);
     }
@@ -73,7 +73,7 @@ class AttractionController extends Controller
     {
         $attraction->update($request->validated());
 
-        Cache::tags(['attractions'])->flush();
+        CacheTagger::flush(['attractions']);
 
         return new AttractionResource($attraction->refresh()->load('media'));
     }
@@ -85,7 +85,7 @@ class AttractionController extends Controller
     {
         $attraction->delete();
 
-        Cache::tags(['attractions'])->flush();
+        CacheTagger::flush(['attractions']);
 
         return response()->noContent();
     }

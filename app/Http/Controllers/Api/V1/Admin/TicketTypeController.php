@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\TicketTypeRequest;
 use App\Http\Resources\TicketTypeResource;
 use App\Models\TicketType;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Controller admin untuk TicketType.
@@ -46,7 +46,7 @@ class TicketTypeController extends Controller
     {
         $ticketType = TicketType::create($request->validated());
 
-        Cache::tags(['ticket-types'])->flush();
+        CacheTagger::flush(['ticket-types']);
 
         return (new TicketTypeResource($ticketType))->response()->setStatusCode(201);
     }
@@ -66,7 +66,7 @@ class TicketTypeController extends Controller
     {
         $ticketType->update($request->validated());
 
-        Cache::tags(['ticket-types'])->flush();
+        CacheTagger::flush(['ticket-types']);
 
         return new TicketTypeResource($ticketType->refresh());
     }
@@ -78,7 +78,7 @@ class TicketTypeController extends Controller
     {
         $ticketType->delete();
 
-        Cache::tags(['ticket-types'])->flush();
+        CacheTagger::flush(['ticket-types']);
 
         return response()->noContent();
     }

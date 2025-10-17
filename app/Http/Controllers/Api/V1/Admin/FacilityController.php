@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\FacilityRequest;
 use App\Http\Resources\FacilityResource;
 use App\Models\Facility;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Controller admin untuk Facility.
@@ -46,7 +46,7 @@ class FacilityController extends Controller
     {
         $facility = Facility::create($request->validated());
 
-        Cache::tags(['facilities'])->flush();
+        CacheTagger::flush(['facilities']);
 
         return (new FacilityResource($facility))->response()->setStatusCode(201);
     }
@@ -66,7 +66,7 @@ class FacilityController extends Controller
     {
         $facility->update($request->validated());
 
-        Cache::tags(['facilities'])->flush();
+        CacheTagger::flush(['facilities']);
 
         return new FacilityResource($facility->refresh());
     }
@@ -78,7 +78,7 @@ class FacilityController extends Controller
     {
         $facility->delete();
 
-        Cache::tags(['facilities'])->flush();
+        CacheTagger::flush(['facilities']);
 
         return response()->noContent();
     }

@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Resources\EventResource;
 use App\Models\Event;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
 
 /**
@@ -24,7 +24,7 @@ class EventController
         $isAdminView = $user && $user->can('events.viewAny');
         $cacheKey = 'events:'.($isAdminView ? 'admin:' : 'public:').md5($request->fullUrl());
 
-        $paginator = Cache::tags(['events'])->remember($cacheKey, now()->addMinutes(5), function () use ($request, $perPage, $isAdminView) {
+        $paginator = CacheTagger::remember($cacheKey, ['events'], now()->addMinutes(5), function () use ($request, $perPage, $isAdminView) {
             $query = Event::query()->with('media');
 
             if (! $isAdminView) {

@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\AnnouncementRequest;
 use App\Http\Resources\AnnouncementResource;
 use App\Models\Announcement;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Controller admin untuk Announcement.
@@ -47,7 +47,7 @@ class AnnouncementController extends Controller
     {
         $announcement = Announcement::create($request->validated());
 
-        Cache::tags(['announcements'])->flush();
+        CacheTagger::flush(['announcements']);
 
         return (new AnnouncementResource($announcement))->response()->setStatusCode(201);
     }
@@ -67,7 +67,7 @@ class AnnouncementController extends Controller
     {
         $announcement->update($request->validated());
 
-        Cache::tags(['announcements'])->flush();
+        CacheTagger::flush(['announcements']);
 
         return new AnnouncementResource($announcement->refresh()->load('media'));
     }
@@ -79,7 +79,7 @@ class AnnouncementController extends Controller
     {
         $announcement->delete();
 
-        Cache::tags(['announcements'])->flush();
+        CacheTagger::flush(['announcements']);
 
         return response()->noContent();
     }

@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\SettingRequest;
 use App\Http\Resources\SettingResource;
 use App\Models\Setting;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Controller admin untuk Setting.
@@ -46,7 +46,7 @@ class SettingController extends Controller
     {
         $setting = Setting::create($request->validated());
 
-        Cache::tags(['settings'])->flush();
+        CacheTagger::flush(['settings']);
 
         return (new SettingResource($setting))->response()->setStatusCode(201);
     }
@@ -66,7 +66,7 @@ class SettingController extends Controller
     {
         $setting->update($request->validated());
 
-        Cache::tags(['settings'])->flush();
+        CacheTagger::flush(['settings']);
 
         return new SettingResource($setting->refresh());
     }
@@ -78,7 +78,7 @@ class SettingController extends Controller
     {
         $setting->delete();
 
-        Cache::tags(['settings'])->flush();
+        CacheTagger::flush(['settings']);
 
         return response()->noContent();
     }

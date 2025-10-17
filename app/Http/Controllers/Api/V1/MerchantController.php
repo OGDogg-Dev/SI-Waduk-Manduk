@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Resources\MerchantResource;
 use App\Models\Merchant;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Controller merchant publik.
@@ -22,7 +22,7 @@ class MerchantController
         $isAdminView = $user && $user->can('merchants.viewAny');
         $cacheKey = 'merchants:'.($isAdminView ? 'admin:' : 'public:').md5($request->fullUrl());
 
-        $collection = Cache::tags(['merchants'])->remember($cacheKey, now()->addMinutes(5), function () use ($request, $isAdminView) {
+        $collection = CacheTagger::remember($cacheKey, ['merchants'], now()->addMinutes(5), function () use ($request, $isAdminView) {
             return Merchant::query()
                 ->with('media')
                 ->when(! $isAdminView, fn ($query) => $query->where('is_verified', true))

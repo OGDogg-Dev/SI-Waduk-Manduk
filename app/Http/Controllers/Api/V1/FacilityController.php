@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Resources\FacilityResource;
 use App\Models\Facility;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Controller fasilitas publik.
@@ -22,7 +22,7 @@ class FacilityController
         $isAdminView = $user && $user->can('facilities.viewAny');
         $cacheKey = 'facilities:'.($isAdminView ? 'admin:' : 'public:').md5($request->fullUrl());
 
-        $collection = Cache::tags(['facilities'])->remember($cacheKey, now()->addMinutes(5), function () use ($isAdminView) {
+        $collection = CacheTagger::remember($cacheKey, ['facilities'], now()->addMinutes(5), function () use ($isAdminView) {
             return Facility::query()
                 ->when(! $isAdminView, fn ($query) => $query->where('is_available', true))
                 ->orderBy('name')

@@ -19,7 +19,7 @@ class InquiryController
     {
         $inquiry = Inquiry::create($request->validated());
 
-        return (new InquiryResource($inquiry))
+        return (new InquiryResource($inquiry->refresh()))
             ->response()
             ->setStatusCode(201);
     }

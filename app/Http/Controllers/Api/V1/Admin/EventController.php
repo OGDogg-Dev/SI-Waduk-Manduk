@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\EventRequest;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Controller admin untuk Event.
@@ -47,7 +47,7 @@ class EventController extends Controller
     {
         $event = Event::create($request->validated());
 
-        Cache::tags(['events'])->flush();
+        CacheTagger::flush(['events']);
 
         return (new EventResource($event))->response()->setStatusCode(201);
     }
@@ -67,7 +67,7 @@ class EventController extends Controller
     {
         $event->update($request->validated());
 
-        Cache::tags(['events'])->flush();
+        CacheTagger::flush(['events']);
 
         return new EventResource($event->refresh()->load('media'));
     }
@@ -79,7 +79,7 @@ class EventController extends Controller
     {
         $event->delete();
 
-        Cache::tags(['events'])->flush();
+        CacheTagger::flush(['events']);
 
         return response()->noContent();
     }

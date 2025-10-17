@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\ClosureRequest;
 use App\Http\Resources\ClosureResource;
 use App\Models\Closure;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Controller admin untuk Closure.
@@ -46,7 +46,7 @@ class ClosureController extends Controller
     {
         $closure = Closure::create($request->validated());
 
-        Cache::tags(['attractions'])->flush();
+        CacheTagger::flush(['attractions']);
 
         return (new ClosureResource($closure->load('attraction')))->response()->setStatusCode(201);
     }
@@ -66,7 +66,7 @@ class ClosureController extends Controller
     {
         $closure->update($request->validated());
 
-        Cache::tags(['attractions'])->flush();
+        CacheTagger::flush(['attractions']);
 
         return new ClosureResource($closure->refresh()->load('attraction'));
     }
@@ -78,7 +78,7 @@ class ClosureController extends Controller
     {
         $closure->delete();
 
-        Cache::tags(['attractions'])->flush();
+        CacheTagger::flush(['attractions']);
 
         return response()->noContent();
     }

@@ -21,7 +21,7 @@ use App\Http\Controllers\Api\V1\Admin\SettingController as AdminSettingControlle
 use App\Http\Controllers\Api\V1\Admin\TicketTypeController as AdminTicketTypeController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('api/v1')->group(function () {
+Route::prefix('v1')->group(function () {
     Route::get('status-today', [StatusTodayController::class, 'index']);
     Route::get('announcements', [AnnouncementController::class, 'index']);
     Route::get('events', [EventController::class, 'index']);

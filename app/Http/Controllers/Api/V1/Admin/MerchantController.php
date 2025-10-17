@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\MerchantRequest;
 use App\Http\Resources\MerchantResource;
 use App\Models\Merchant;
+use App\Support\CacheTagger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Controller admin untuk Merchant.
@@ -48,7 +48,7 @@ class MerchantController extends Controller
     {
         $merchant = Merchant::create($request->validated());
 
-        Cache::tags(['merchants'])->flush();
+        CacheTagger::flush(['merchants']);
 
         return (new MerchantResource($merchant))->response()->setStatusCode(201);
     }
@@ -68,7 +68,7 @@ class MerchantController extends Controller
     {
         $merchant->update($request->validated());
 
-        Cache::tags(['merchants'])->flush();
+        CacheTagger::flush(['merchants']);
 
         return new MerchantResource($merchant->refresh()->load('media'));
     }
@@ -80,7 +80,7 @@ class MerchantController extends Controller
     {
         $merchant->delete();
 
-        Cache::tags(['merchants'])->flush();
+        CacheTagger::flush(['merchants']);
 
         return response()->noContent();
     }

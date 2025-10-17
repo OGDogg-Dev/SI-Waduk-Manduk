@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Resources\AttractionResource;
 use App\Models\Attraction;
 use App\Services\OperatingStatusService;
+use App\Support\CacheTagger;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Controller attraction publik.
@@ -26,7 +26,7 @@ class AttractionController
         $cacheKey = 'attractions:'.($isAdminView ? 'admin:' : 'public:').md5($request->fullUrl());
 
         /** @var LengthAwarePaginator $paginator */
-        $paginator = Cache::tags(['attractions'])->remember($cacheKey, now()->addMinutes(5), function () use ($request, $perPage, $isAdminView) {
+        $paginator = CacheTagger::remember($cacheKey, ['attractions'], now()->addMinutes(5), function () use ($request, $perPage, $isAdminView) {
             return Attraction::query()
                 ->with('media')
                 ->when(! $isAdminView, fn ($query) => $query->where('is_active', true))
@@ -52,7 +52,7 @@ class AttractionController
     {
         $cacheKey = 'attractions:show:'.$slug;
 
-        $payload = Cache::tags(['attractions'])->remember($cacheKey, now()->addMinutes(5), function () use ($slug, $service) {
+        $payload = CacheTagger::remember($cacheKey, ['attractions'], now()->addMinutes(5), function () use ($slug, $service) {
             $attraction = Attraction::query()->with('media')->where('slug', $slug)->firstOrFail();
 
             return [
