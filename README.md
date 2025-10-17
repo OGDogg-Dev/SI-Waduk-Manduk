@@ -19,6 +19,15 @@ Backend Laravel untuk pengelolaan konten wisata Waduk Manduk lengkap dengan API 
    php artisan storage:link
    ```
 
+## Dependensi Frontend
+
+Jalankan perintah berikut setelah inisialisasi proyek untuk memasang paket frontend tambahan:
+
+```bash
+npm i @tanstack/react-query axios dayjs zod react-hot-toast leaflet react-leaflet lucide-react
+npm i -D @types/leaflet
+```
+
 ## Migrasi & Seeder
 
 Jalankan migrasi berikut untuk menginisialisasi skema dan data awal:
