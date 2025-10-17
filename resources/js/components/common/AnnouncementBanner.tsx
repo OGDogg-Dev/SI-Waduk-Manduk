@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import type { Announcement, AnnouncementSeverity } from '@/lib/types';
 import Card from './Card';
 
-const severityStyle: Record<AnnouncementSeverity, string> = {
+export const announcementSeverityStyle: Record<AnnouncementSeverity, string> = {
     INFO: 'bg-sky-500/10 text-sky-700 dark:text-sky-200',
     WARNING: 'bg-amber-500/10 text-amber-700 dark:text-amber-200',
     ALERT: 'bg-red-500/10 text-red-700 dark:text-red-200',
@@ -23,7 +23,7 @@ export const AnnouncementBanner = ({ announcement }: AnnouncementBannerProps) =>
                 <span
                     className={cn(
                         'inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider',
-                        severityStyle[announcement.severity],
+                        announcementSeverityStyle[announcement.severity],
                     )}
                 >
                     {announcement.severity}

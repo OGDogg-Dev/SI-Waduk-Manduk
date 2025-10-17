@@ -56,6 +56,24 @@ const AttractionShow = ({ slug }: AttractionShowProps) => {
             </Head>
 
             <Section>
+                <nav className="mb-6 text-sm text-muted-foreground" aria-label="Breadcrumb">
+                    <ol className="flex flex-wrap items-center gap-2">
+                        <li>
+                            <Link href="/" prefetch className="text-foreground transition hover:text-primary">
+                                Beranda
+                            </Link>
+                        </li>
+                        <li aria-hidden="true">/</li>
+                        <li>
+                            <Link href="/attractions" prefetch className="text-foreground transition hover:text-primary">
+                                Atraksi
+                            </Link>
+                        </li>
+                        <li aria-hidden="true">/</li>
+                        <li className="text-foreground">{attraction?.name ?? 'Detail'}</li>
+                    </ol>
+                </nav>
+
                 {attractionQuery.isLoading && <LoadingState lines={10} />}
                 {attractionQuery.isError && <ErrorState onRetry={() => attractionQuery.refetch()} />}
 

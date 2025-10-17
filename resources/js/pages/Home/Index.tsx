@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/id';
 import AnnouncementBanner from '@/components/common/AnnouncementBanner';
@@ -17,14 +18,18 @@ import { formatCurrency } from '@/lib/utils';
 import PublicLayout from '@/layouts/PublicLayout';
 import { useStatusToday } from '@/hooks/useStatusToday';
 
+const highlightTypes = ['WAHANA', 'SPOT'] as const;
+
 dayjs.locale('id');
 
 const HomePage = () => {
     const statusQuery = useStatusToday();
 
-    const attractionsQuery = useQuery({
-        queryKey: ['attractions', 'highlight'],
-        queryFn: () => fetcher<PaginatedResponse<Attraction>>('/attractions', { per_page: 3 }),
+    const highlightQueries = useQueries({
+        queries: highlightTypes.map((type) => ({
+            queryKey: ['attractions', 'highlight', type],
+            queryFn: () => fetcher<PaginatedResponse<Attraction>>('/attractions', { per_page: 3, type }),
+        })),
     });
 
     const announcementQuery = useQuery({
@@ -32,9 +37,40 @@ const HomePage = () => {
         queryFn: () => fetcher<PaginatedResponse<Announcement>>('/announcements', { per_page: 1 }),
     });
 
-    const status = statusQuery.data;
-    const highlightAttractions = attractionsQuery.data?.data ?? [];
+    const highlightAttractions = useMemo(() => {
+        const map = new Map<number, Attraction>();
+        highlightQueries.forEach((query) => {
+            query.data?.data?.forEach((item) => {
+                map.set(item.id, item);
+            });
+        });
+        return Array.from(map.values()).slice(0, 3);
+    }, highlightQueries.map((query) => query.data));
+
+    const highlightMarkers = useMemo(() => {
+        return highlightAttractions
+            .filter((item) => item.latitude && item.longitude)
+            .map((item) => ({
+                position: [item.latitude as number, item.longitude as number] as [number, number],
+                label: item.name,
+            }));
+    }, [highlightAttractions]);
+
+    const galleryImages = useMemo(() => {
+        return highlightAttractions
+            .flatMap((attraction) => attraction.images ?? [])
+            .slice(0, 6)
+            .map((image) => ({
+                id: `${image.id}-${image.url}`,
+                url: image.url,
+                alt: image.name ?? 'Atraksi Waduk Manduk',
+            }));
+    }, [highlightAttractions]);
+
     const latestAnnouncement = announcementQuery.data?.data?.[0] ?? null;
+
+    const highlightIsLoading = highlightQueries.some((query) => query.isLoading);
+    const highlightError = highlightQueries.find((query) => query.isError);
 
     return (
         <PublicLayout>
@@ -52,8 +88,7 @@ const HomePage = () => {
                             Nikmati Panorama Senja dan Wisata Keluarga di Waduk Manduk
                         </h1>
                         <p className="text-base text-muted-foreground md:text-lg">
-                            Temukan pengalaman wisata air terbaik di Ponorogo: wahana perahu bebek, spot foto, kuliner UMKM, dan
-                            agenda event seru.
+                            Temukan pengalaman wisata air terbaik di Ponorogo: wahana perahu bebek, spot foto, kuliner UMKM, dan agenda event seru.
                         </p>
                         <div className="flex flex-wrap gap-3">
                             <Button asChild size="lg" className="rounded-full">
@@ -69,7 +104,7 @@ const HomePage = () => {
                         </div>
                     </div>
                     <div className="flex-1">
-                        <MapView className="h-72" />
+                        <MapView className="h-72" markers={highlightMarkers} />
                     </div>
                 </div>
             </section>
@@ -77,20 +112,20 @@ const HomePage = () => {
             <Section title="Status Operasional Hari Ini" description="Pantau jadwal buka dan penutupan area wisata secara real-time.">
                 {statusQuery.isLoading && <LoadingState />}
                 {statusQuery.isError && <ErrorState onRetry={() => statusQuery.refetch()} />}
-                {status && (
+                {statusQuery.data && (
                     <Card className="bg-background/60">
                         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                             <div className="space-y-3">
                                 <Badge
                                     className={`w-fit rounded-full px-4 py-1 text-sm font-semibold ${
-                                        status.open_now ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+                                        statusQuery.data.open_now ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
                                     }`}
                                 >
-                                    {status.open_now ? 'Sedang Buka' : 'Tutup Sementara'}
+                                    {statusQuery.data.open_now ? 'Sedang Buka' : 'Tutup Sementara'}
                                 </Badge>
                                 <div className="text-sm text-muted-foreground">
                                     <p>
-                                        Jam operasional: <span className="font-medium text-foreground">{status.open_time ?? '-'} - {status.close_time ?? '-'}</span>
+                                        Jam operasional: <span className="font-medium text-foreground">{statusQuery.data.open_time ?? '-'} - {statusQuery.data.close_time ?? '-'}</span>
                                     </p>
                                     <p className="text-xs">
                                         Data diperbarui {dayjs().format('DD MMM YYYY HH:mm')}.
@@ -98,8 +133,8 @@ const HomePage = () => {
                                 </div>
                             </div>
                             <div className="space-y-2 text-sm text-muted-foreground">
-                                {status.closures_today.length > 0 ? (
-                                    status.closures_today.map((closure) => (
+                                {statusQuery.data.closures_today.length > 0 ? (
+                                    statusQuery.data.closures_today.map((closure) => (
                                         <div key={closure.id} className="rounded-xl bg-destructive/10 p-3">
                                             <p className="font-medium text-destructive">
                                                 {closure.attraction_name ?? 'Area tertentu'} ditutup sementara
@@ -123,11 +158,11 @@ const HomePage = () => {
             </Section>
 
             <Section title="Destinasi Unggulan" description="Tiga rekomendasi atraksi terbaik untuk memulai petualangan Anda.">
-                {attractionsQuery.isLoading && <LoadingState />}
-                {attractionsQuery.isError && (
-                    <ErrorState onRetry={() => attractionsQuery.refetch()} message="Gagal memuat daftar atraksi." />
+                {highlightIsLoading && <LoadingState />}
+                {highlightError && (
+                    <ErrorState onRetry={() => highlightQueries.forEach((query) => query.refetch())} message="Gagal memuat daftar atraksi." />
                 )}
-                {!attractionsQuery.isLoading && highlightAttractions.length === 0 && (
+                {!highlightIsLoading && highlightAttractions.length === 0 && (
                     <EmptyState title="Belum ada atraksi" description="Data atraksi akan segera tersedia." />
                 )}
                 {highlightAttractions.length > 0 && (
@@ -157,7 +192,30 @@ const HomePage = () => {
                         ))}
                     </div>
                 )}
+
+                {highlightMarkers.length > 0 && (
+                    <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
+                        <h3 className="text-lg font-semibold">Lokasi Destinasi</h3>
+                        <MapView className="mt-4 h-72" markers={highlightMarkers} />
+                    </div>
+                )}
             </Section>
+
+            {galleryImages.length > 0 && (
+                <Section title="Galeri Senja Waduk Manduk" description="Suasana terbaik dari destinasi unggulan kami.">
+                    <div className="grid gap-4 md:grid-cols-3">
+                        {galleryImages.map((image) => (
+                            <img
+                                key={image.id}
+                                src={image.url}
+                                alt={image.alt}
+                                loading="lazy"
+                                className="h-48 w-full rounded-2xl object-cover shadow-sm"
+                            />
+                        ))}
+                    </div>
+                </Section>
+            )}
 
             {latestAnnouncement && (
                 <Section title="Pengumuman Terbaru">

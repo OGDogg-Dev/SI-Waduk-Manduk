@@ -29,7 +29,7 @@ export const usePaginated = <
                 ...params,
                 page: pageParam,
             }),
-        getNextPageParam: (lastPage) => {
+        getNextPageParam: (lastPage: PaginatedResponse<TData>) => {
             if (!lastPage.meta) {
                 return undefined;
             }
@@ -41,7 +41,7 @@ export const usePaginated = <
         enabled,
     });
 
-    const items = query.data?.pages.flatMap((page) => page.data) ?? [];
+    const items = query.data?.pages.flatMap((page: PaginatedResponse<TData>) => page.data) ?? [];
 
     return {
         ...query,

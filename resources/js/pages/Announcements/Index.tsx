@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import EmptyState from '@/components/common/EmptyState';
-import AnnouncementBanner from '@/components/common/AnnouncementBanner';
+import AnnouncementBanner, { announcementSeverityStyle } from '@/components/common/AnnouncementBanner';
 import ErrorState from '@/components/common/ErrorState';
 import LoadingState from '@/components/common/LoadingState';
 import Section from '@/components/common/Section';
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { usePaginated } from '@/hooks/usePaginated';
 import type { Announcement } from '@/lib/types';
+import { cn } from '@/lib/utils';
 import PublicLayout from '@/layouts/PublicLayout';
 
 const AnnouncementsIndex = () => {
@@ -49,7 +50,12 @@ const AnnouncementsIndex = () => {
                             >
                                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                                     <div className="space-y-2">
-                                        <Badge variant="outline" className="w-fit rounded-full">
+                                        <Badge
+                                            className={cn(
+                                                'w-fit rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide',
+                                                announcementSeverityStyle[announcement.severity],
+                                            )}
+                                        >
                                             {announcement.severity}
                                         </Badge>
                                         <h3 className="text-xl font-semibold">{announcement.title}</h3>
